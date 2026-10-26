@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using TaskManagement.Application.Common.Converters;
 using TaskManagement.Api.Middleware;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Services;
@@ -30,14 +31,20 @@ builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportService, DapperReportRepository>();
 
-// Add Controllers & FluentValidation
-builder.Services.AddControllers();
+// Add Controllers, JSON Options & FluentValidation
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new EmptyStringToNullableGuidConverter());
+        options.JsonSerializerOptions.Converters.Add(new EmptyStringToNullableDateTimeConverter());
+    });
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
@@ -157,3 +164,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

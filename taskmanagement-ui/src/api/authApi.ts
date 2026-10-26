@@ -7,12 +7,12 @@ export const authApi = {
     return response.data;
   },
 
-  register: async (fullName: string, email: string, password: string): Promise<AuthResponse> => {
+  register: async (fullName: string, email: string, password: string, confirmPassword?: string): Promise<AuthResponse> => {
     const response = await axiosClient.post<AuthResponse>('/auth/register', {
       fullName,
       email,
       password,
-      confirmPassword: password,
+      confirmPassword: confirmPassword || password,
     });
     return response.data;
   },
@@ -22,3 +22,4 @@ export const authApi = {
     return response.data;
   },
 };
+

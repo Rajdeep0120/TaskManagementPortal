@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { taskApi } from '../api/taskApi';
 import { projectApi } from '../api/projectApi';
+import { userApi } from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
-import type { TaskItem, Project } from '../types';
+import type { TaskItem, Project, User as UserType, ProjectMember } from '../types';
 import { TaskItemStatus } from '../types';
 import {
   Plus,
@@ -13,20 +14,24 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
-  Filter
+  Filter,
+  User
 } from 'lucide-react';
 import { TaskModal } from '../components/TaskModal';
 import { TaskDetailModal } from '../components/TaskDetailModal';
 
 export const TaskBoardPage: React.FC = () => {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId') || '';
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(urlProjectId);
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('createdat');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -43,8 +48,12 @@ export const TaskBoardPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const projectsData = await projectApi.getAll(1, 100);
+      const [projectsData, usersData] = await Promise.all([
+        projectApi.getAll(1, 100),
+        userApi.getAll(),
+      ]);
       setProjects(projectsData.items);
+      setUsers(usersData);
 
       const filterParams: any = {
         page: 1,
@@ -73,6 +82,17 @@ export const TaskBoardPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      projectApi
+        .getMembers(selectedProjectId)
+        .then(setProjectMembers)
+        .catch(() => setProjectMembers([]));
+    } else {
+      setProjectMembers([]);
+    }
+  }, [selectedProjectId]);
 
   const handleProjectChange = (projectId: string) => {
     setSelectedProjectId(projectId);
@@ -115,7 +135,7 @@ export const TaskBoardPage: React.FC = () => {
     }
   };
 
-  // Filter tasks locally by search and priority
+  // Filter tasks locally by search, priority and assignee
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,7 +144,13 @@ export const TaskBoardPage: React.FC = () => {
     const matchesPriority =
       selectedPriority === 'all' || task.priority === parseInt(selectedPriority, 10);
 
-    return matchesSearch && matchesPriority;
+    const matchesAssignee =
+      selectedAssignee === 'all' ||
+      (selectedAssignee === 'me' && task.assignedToUserId === user?.id) ||
+      (selectedAssignee === 'unassigned' && !task.assignedToUserId) ||
+      task.assignedToUserId === selectedAssignee;
+
+    return matchesSearch && matchesPriority && matchesAssignee;
   });
 
   const todoTasks = filteredTasks.filter((t) => t.status === TaskItemStatus.ToDo);
@@ -152,6 +178,17 @@ export const TaskBoardPage: React.FC = () => {
 
       <div className="task-card-bottom">
         <div className="task-card-meta">
+          {task.assignedToName ? (
+            <span className="task-card-assignee" title={`Assigned to ${task.assignedToName}`}>
+              <User size={13} />
+              {task.assignedToName}
+            </span>
+          ) : (
+            <span className="task-card-unassigned" title="Unassigned task">
+              <User size={13} />
+              Unassigned
+            </span>
+          )}
           {task.dueDate && (
             <span className="task-card-due">
               <Calendar size={13} />
@@ -265,6 +302,31 @@ export const TaskBoardPage: React.FC = () => {
             <option value="0">Low</option>
             <option value="1">Medium</option>
             <option value="2">High</option>
+          </select>
+        </div>
+
+        <div className="control-group">
+          <label htmlFor="filter-assignee">Assignee</label>
+          <select
+            id="filter-assignee"
+            className="form-input control-select"
+            value={selectedAssignee}
+            onChange={(e) => setSelectedAssignee(e.target.value)}
+          >
+            <option value="all">All Assignees</option>
+            <option value="me">Assigned to Me</option>
+            <option value="unassigned">Unassigned</option>
+            {selectedProjectId && projectMembers.length > 0
+              ? projectMembers.map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.fullName || m.email}
+                  </option>
+                ))
+              : users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.fullName}
+                  </option>
+                ))}
           </select>
         </div>
 
@@ -386,6 +448,7 @@ export const TaskBoardPage: React.FC = () => {
         onSubmit={handleCreateOrUpdateTask}
         task={editingTask}
         projects={projects}
+        users={users}
         defaultProjectId={selectedProjectId}
       />
 
@@ -407,3 +470,4 @@ export const TaskBoardPage: React.FC = () => {
     </div>
   );
 };
+

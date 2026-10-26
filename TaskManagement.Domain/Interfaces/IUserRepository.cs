@@ -9,7 +9,9 @@ public interface IUserRepository
     Task<IEnumerable<User>> GetAllAsync();
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
+    Task DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
     Task<bool> EmailExistsAsync(string email);
+    Task<bool> HasCreatedProjectsOrTasksAsync(Guid id);
 }
 

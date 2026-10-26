@@ -11,15 +11,17 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Password confirmation is required'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string().min(1, 'Password confirmation is required'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -51,12 +53,29 @@ export const LoginPage: React.FC = () => {
   };
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
+    if (data.password !== data.confirmPassword) {
+      registerForm.setError('confirmPassword', {
+        type: 'manual',
+        message: 'Passwords do not match',
+      });
+      return;
+    }
+
     try {
       setAuthError(null);
-      await registerUser(data.fullName, data.email, data.password);
+      await registerUser(data.fullName, data.email, data.password, data.confirmPassword);
       navigate('/dashboard');
     } catch (err: any) {
-      setAuthError(err.response?.data?.message || 'Registration failed.');
+      const responseData = err.response?.data;
+      const validationErrors = responseData?.errors;
+      let errorMsg = responseData?.message || responseData?.title || 'Registration failed.';
+      if (validationErrors) {
+        const firstKey = Object.keys(validationErrors)[0];
+        if (firstKey && validationErrors[firstKey]?.length > 0) {
+          errorMsg = validationErrors[firstKey][0];
+        }
+      }
+      setAuthError(errorMsg);
     }
   };
 
@@ -268,3 +287,4 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
+

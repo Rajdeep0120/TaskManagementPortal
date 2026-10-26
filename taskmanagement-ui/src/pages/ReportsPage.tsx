@@ -48,12 +48,12 @@ export const ReportsPage: React.FC = () => {
       )}
 
       {/* SQL Query explanation banner */}
-      <div className="info-banner">
+      {/* <div className="info-banner">
         <div className="info-badge">Dapper + Raw PostgreSQL Query</div>
         <p>
           Aggregates task status counts per user using conditional <code>COUNT(CASE WHEN ...)</code> groupings across the <code>Users</code> and <code>Tasks</code> tables.
         </p>
-      </div>
+      </div> */}
 
       {loading ? (
         <div className="flex-center py-16">

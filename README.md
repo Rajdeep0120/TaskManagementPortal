@@ -212,3 +212,4 @@ ORDER BY COUNT(t."Id") DESC;
 | `POST` | `/api/tasks/{id}/comments` | Authenticated | Post comment on task |
 | `DELETE` | `/api/tasks/{id}/comments/{commentId}` | Authenticated | Delete own comment |
 | `GET` | `/api/reports/tasks-per-user` | **Admin** | Dapper raw SQL workload report |
+

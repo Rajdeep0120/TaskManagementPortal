@@ -9,7 +9,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (fullName: string, email: string, password: string) => Promise<void>;
+  register: (fullName: string, email: string, password: string, confirmPassword?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -54,8 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleAuthSuccess(data);
   };
 
-  const register = async (fullName: string, email: string, password: string) => {
-    const data = await authApi.register(fullName, email, password);
+  const register = async (fullName: string, email: string, password: string, confirmPassword?: string) => {
+    const data = await authApi.register(fullName, email, password, confirmPassword);
     handleAuthSuccess(data);
   };
 
@@ -94,3 +94,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

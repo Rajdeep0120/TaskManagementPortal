@@ -43,12 +43,24 @@ export const taskApi = {
   },
 
   create: async (payload: CreateTaskPayload): Promise<TaskItem> => {
-    const response = await axiosClient.post<TaskItem>('/tasks', payload);
+    const sanitized = {
+      ...payload,
+      assignedToUserId: payload.assignedToUserId && payload.assignedToUserId.trim() !== '' ? payload.assignedToUserId : null,
+      dueDate: payload.dueDate && payload.dueDate.trim() !== '' ? payload.dueDate : null,
+      description: payload.description?.trim() || null,
+    };
+    const response = await axiosClient.post<TaskItem>('/tasks', sanitized);
     return response.data;
   },
 
   update: async (id: string, payload: UpdateTaskPayload): Promise<TaskItem> => {
-    const response = await axiosClient.put<TaskItem>(`/tasks/${id}`, payload);
+    const sanitized = {
+      ...payload,
+      assignedToUserId: payload.assignedToUserId && payload.assignedToUserId.trim() !== '' ? payload.assignedToUserId : null,
+      dueDate: payload.dueDate && payload.dueDate.trim() !== '' ? payload.dueDate : null,
+      description: payload.description?.trim() || null,
+    };
+    const response = await axiosClient.put<TaskItem>(`/tasks/${id}`, sanitized);
     return response.data;
   },
 
@@ -60,3 +72,4 @@ export const taskApi = {
     await axiosClient.delete(`/tasks/${id}`);
   },
 };
+

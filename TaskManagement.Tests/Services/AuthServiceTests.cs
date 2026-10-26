@@ -146,3 +146,4 @@ public class AuthServiceTests
             .WithMessage("Email is already registered.");
     }
 }
+

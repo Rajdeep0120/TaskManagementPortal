@@ -55,3 +55,4 @@ volumes:
 networks:
   taskmanagement-net:
     driver: bridge
+

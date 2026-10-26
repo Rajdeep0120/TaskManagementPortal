@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import type { TaskItem, Project } from '../types';
+import type { TaskItem, Project, User, ProjectMember } from '../types';
+import { projectApi } from '../api/projectApi';
 import { X } from 'lucide-react';
 
 const taskSchema = z.object({
@@ -23,6 +24,7 @@ interface TaskModalProps {
   onSubmit: (data: TaskFormData) => Promise<void>;
   task?: TaskItem | null;
   projects: Project[];
+  users?: User[];
   defaultProjectId?: string;
 }
 
@@ -40,6 +42,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -53,6 +57,48 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       assignedToUserId: '',
     },
   });
+
+  const currentProjectId = watch('projectId');
+  const currentAssignedTo = watch('assignedToUserId');
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !currentProjectId) {
+      setProjectMembers([]);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchMembers = async () => {
+      try {
+        setLoadingMembers(true);
+        const members = await projectApi.getMembers(currentProjectId);
+        if (isMounted) {
+          setProjectMembers(members);
+          if (task?.assignedToUserId) {
+            setValue('assignedToUserId', task.assignedToUserId);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load project members:', err);
+        if (isMounted) setProjectMembers([]);
+      } finally {
+        if (isMounted) setLoadingMembers(false);
+      }
+    };
+
+    fetchMembers();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, currentProjectId, task, setValue]);
+
+  useEffect(() => {
+    if (task && projectMembers.length > 0 && task.assignedToUserId) {
+      setValue('assignedToUserId', task.assignedToUserId);
+    }
+  }, [task, projectMembers, setValue]);
 
   useEffect(() => {
     if (task) {
@@ -82,7 +128,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const onFormSubmit = async (data: TaskFormData) => {
     try {
-      await onSubmit(data);
+      const sanitized = {
+        ...data,
+        assignedToUserId: data.assignedToUserId?.trim() || undefined,
+        dueDate: data.dueDate?.trim() || undefined,
+        description: data.description?.trim() || '',
+      };
+      await onSubmit(sanitized);
       onClose();
     } catch (error) {
       console.error('Failed to save task:', error);
@@ -164,14 +216,49 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="dueDate">Due Date</label>
-            <input
-              id="dueDate"
-              type="date"
-              className="form-input"
-              {...register('dueDate')}
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="assignedToUserId">
+                Assign To {loadingMembers && <span className="text-muted text-xs">(Loading team...)</span>}
+              </label>
+              <select
+                id="assignedToUserId"
+                className="form-input"
+                {...register('assignedToUserId')}
+                value={currentAssignedTo || ''}
+                onChange={(e) => setValue('assignedToUserId', e.target.value)}
+              >
+                <option value="">Unassigned</option>
+                {projectMembers.map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.fullName || m.email}
+                  </option>
+                ))}
+                {task?.assignedToUserId &&
+                  !projectMembers.some(
+                    (m) => m.userId.toLowerCase() === task.assignedToUserId?.toLowerCase()
+                  ) && (
+                    <option value={task.assignedToUserId}>
+                      {task.assignedToName || 'Current Assignee'}
+                    </option>
+                  )}
+                {projectMembers.length === 0 && !loadingMembers && (
+                  <option value="" disabled>
+                    (No members in this project)
+                  </option>
+                )}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="dueDate">Due Date</label>
+              <input
+                id="dueDate"
+                type="date"
+                className="form-input"
+                {...register('dueDate')}
+              />
+            </div>
           </div>
 
           <div className="modal-actions">
@@ -187,3 +274,4 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     </div>
   );
 };
+

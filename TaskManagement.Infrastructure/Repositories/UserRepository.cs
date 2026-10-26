@@ -43,6 +43,16 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.Users.AnyAsync(u => u.Id == id);
@@ -52,5 +62,12 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .AnyAsync(u => u.Email.ToLower() == email.ToLower());
+    }
+
+    public async Task<bool> HasCreatedProjectsOrTasksAsync(Guid id)
+    {
+        var hasProjects = await _context.Projects.AnyAsync(p => p.CreatedByUserId == id);
+        var hasTasks = await _context.Tasks.AnyAsync(t => t.CreatedByUserId == id);
+        return hasProjects || hasTasks;
     }
 }

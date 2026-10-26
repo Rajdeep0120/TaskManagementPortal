@@ -13,9 +13,13 @@ import {
   Trash2,
   Calendar,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { ProjectModal } from '../components/ProjectModal';
+import { ProjectMembersModal } from '../components/ProjectMembersModal';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const ProjectsPage: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -25,16 +29,26 @@ export const ProjectsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(6);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [membersProject, setMembersProject] = useState<Project | null>(null);
 
-  const loadProjects = async () => {
+  const loadProjects = async (targetPage = page) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await projectApi.getAll(1, 100);
+      const data = await projectApi.getAll(targetPage, pageSize);
       setProjects(data.items);
+      setPage(data.page);
+      setTotalPages(data.totalPages);
+      setTotalCount(data.totalCount);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load projects.');
     } finally {
@@ -43,7 +57,7 @@ export const ProjectsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadProjects();
+    loadProjects(1);
   }, []);
 
   const handleCreateOrUpdate = async (data: { name: string; description?: string }) => {
@@ -69,8 +83,8 @@ export const ProjectsPage: React.FC = () => {
   };
 
   const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.description.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    p.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   return (
@@ -172,10 +186,18 @@ export const ProjectsPage: React.FC = () => {
                   <CheckSquare size={16} />
                   <span>{project.taskCount} Tasks</span>
                 </div>
-                <div className="stat-pill">
+                <button
+                  type="button"
+                  className="stat-pill stat-pill-clickable"
+                  title="View & manage members"
+                  onClick={() => {
+                    setMembersProject(project);
+                    setIsMembersModalOpen(true);
+                  }}
+                >
                   <Users size={16} />
                   <span>{project.memberCount} Members</span>
-                </div>
+                </button>
                 <div className="stat-pill">
                   <Calendar size={16} />
                   <span>{new Date(project.createdAt).toLocaleDateString()}</span>
@@ -196,6 +218,31 @@ export const ProjectsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            className="btn btn-secondary"
+            disabled={page <= 1}
+            onClick={() => loadProjects(page - 1)}
+          >
+            <ChevronLeft size={16} />
+            <span>Previous</span>
+          </button>
+          <span className="pagination-info">
+            Page {page} of {totalPages} ({totalCount} total)
+          </span>
+          <button
+            className="btn btn-secondary"
+            disabled={page >= totalPages}
+            onClick={() => loadProjects(page + 1)}
+          >
+            <span>Next</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Project Modal */}
       <ProjectModal
         isOpen={isModalOpen}
@@ -205,6 +252,17 @@ export const ProjectsPage: React.FC = () => {
         }}
         onSubmit={handleCreateOrUpdate}
         project={editingProject}
+      />
+
+      {/* Project Members Modal */}
+      <ProjectMembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => {
+          setIsMembersModalOpen(false);
+          setMembersProject(null);
+        }}
+        project={membersProject}
+        onMembersUpdated={() => loadProjects(page)}
       />
     </div>
   );

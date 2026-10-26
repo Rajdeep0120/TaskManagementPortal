@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, FolderKanban, CheckSquare, BarChart3, LogOut, UserCircle } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, CheckSquare, BarChart3, LogOut, UserCircle, Users } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, isAdmin, logout } = useAuth();
@@ -35,10 +35,16 @@ export const Navbar: React.FC = () => {
               <span>Task Board</span>
             </NavLink>
             {isAdmin && (
-              <NavLink to="/reports" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <BarChart3 size={18} />
-                <span>Reports</span>
-              </NavLink>
+              <>
+                <NavLink to="/reports" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                  <BarChart3 size={18} />
+                  <span>Reports</span>
+                </NavLink>
+                <NavLink to="/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                  <Users size={18} />
+                  <span>Users</span>
+                </NavLink>
+              </>
             )}
           </nav>
         </div>
@@ -62,3 +68,4 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
+

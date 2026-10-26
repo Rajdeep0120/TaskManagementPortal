@@ -106,6 +106,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             )}
             <div className="meta-item">
               <User size={16} />
+              <span>Assigned to: <strong>{task.assignedToName || 'Unassigned'}</strong></span>
+            </div>
+            <div className="meta-item">
+              <User size={16} />
               <span>Created by: {task.createdByName || 'Unknown'}</span>
             </div>
           </div>
@@ -204,3 +208,4 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     </div>
   );
 };
+

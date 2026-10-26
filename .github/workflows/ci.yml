@@ -51,3 +51,4 @@ jobs:
     - name: Type Check & Build
       working-directory: ./taskmanagement-ui
       run: npm run build
+

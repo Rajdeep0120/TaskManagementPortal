@@ -623,6 +623,165 @@ body {
   gap: 4px;
 }
 
+.task-card-assignee, .task-card-unassigned {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--surface-hover);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-card-unassigned {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding: 16px;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Clickable Stat Pill */
+button.stat-pill.stat-pill-clickable {
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+button.stat-pill.stat-pill-clickable:hover {
+  background-color: #eff6ff;
+  color: var(--primary, #2563eb);
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
+}
+
+/* Members Modal */
+.members-modal-body {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.add-member-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  background-color: var(--surface-hover);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.btn-add-member {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.members-section-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.members-section-header h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease;
+}
+
+.member-item:hover {
+  background-color: var(--surface-hover);
+}
+
+.member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #dbeafe;
+  color: var(--primary, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.member-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.member-joined {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.empty-members {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .status-shift-actions {
   display: flex;
   align-items: center;
@@ -1241,6 +1400,61 @@ body {
   min-width: 160px;
 }
 
+/* Users Page */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-cell-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.you-pill {
+  font-size: 0.7rem;
+  background-color: #dbeafe;
+  color: var(--primary, #2563eb);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.select-role {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  width: auto;
+  min-width: 110px;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.825rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+}
+
+.btn-outline-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .progress-track-sm {
   flex: 1;
   height: 8px;
@@ -1443,3 +1657,4 @@ body {
 .mt-4 { margin-top: 16px; }
 .py-12 { padding-top: 48px; padding-bottom: 48px; }
 .py-16 { padding-top: 64px; padding-bottom: 64px; }
+

@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { TaskBoardPage } from './pages/TaskBoardPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { UsersPage } from './pages/UsersPage';
 import './index.css';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -72,6 +73,17 @@ export const App: React.FC = () => {
             }
           />
 
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute requiredRole="Admin">
+                <Layout>
+                  <UsersPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Fallback */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -82,3 +94,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

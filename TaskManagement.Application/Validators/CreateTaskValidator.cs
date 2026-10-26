@@ -21,7 +21,7 @@ public class CreateTaskValidator : AbstractValidator<CreateTaskRequest>
             .NotEmpty().WithMessage("Project ID is required.");
 
         RuleFor(x => x.DueDate)
-            .GreaterThan(DateTime.UtcNow).WithMessage("Due date must be in the future.")
+            .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage("Due date cannot be in the past.")
             .When(x => x.DueDate.HasValue);
     }
 }

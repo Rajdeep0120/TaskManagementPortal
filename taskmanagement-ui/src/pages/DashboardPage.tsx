@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from '../api/dashboardApi';
 import { taskApi } from '../api/taskApi';
 import { projectApi } from '../api/projectApi';
+import { userApi } from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
-import type { DashboardSummary, TaskItem, Project } from '../types';
+import type { DashboardSummary, TaskItem, Project, User } from '../types';
 import {
   CheckCircle2,
   Clock,
@@ -24,6 +25,7 @@ export const DashboardPage: React.FC = () => {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentTasks, setRecentTasks] = useState<TaskItem[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -33,15 +35,17 @@ export const DashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [summaryData, tasksData, projectsData] = await Promise.all([
+      const [summaryData, tasksData, projectsData, usersData] = await Promise.all([
         dashboardApi.getSummary(),
         taskApi.getFiltered({ page: 1, pageSize: 5 }),
         projectApi.getAll(1, 100),
+        userApi.getAll(),
       ]);
 
       setSummary(summaryData);
       setRecentTasks(tasksData.items);
       setProjects(projectsData.items);
+      setUsers(usersData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load dashboard data.');
     } finally {
@@ -239,7 +243,9 @@ export const DashboardPage: React.FC = () => {
         onClose={() => setIsTaskModalOpen(false)}
         onSubmit={handleCreateTask}
         projects={projects}
+        users={users}
       />
     </div>
   );
 };
+
